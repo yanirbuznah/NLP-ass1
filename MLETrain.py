@@ -1,127 +1,113 @@
-import sys  # for system arguments
-import itertools
-from collections import Counter
+import sys
 
-input_file_name = sys.argv[1]
-q_mle_filename = sys.argv[2]
-e_mle_filename = sys.argv[3]
+import numpy as np
 
-STUDENT = {'name': 'Noa Yehezkel Lubin',
-           'ID': '305097552'}
+from utils import *
 
 
-def readInputFile():
-    """
-    reads the input file.
-    returns: input file.
-    """
-    with open(input_file_name) as inputFile:
-        return inputFile.read()
+def calc_mle(input_file_name):
+    file = open(input_file_name, 'r')
+    lines = file.readlines()
+    file.close()
+    for line in lines:
+        # remove trailing '\n' and split by ' '
+        split_line = line.strip().split(' ')
+        calc_emle(split_line)
+        calc_qmle(split_line)
+    rare_emissions = {}
+    for_remove = []
+    for (w, t), value in emissions.items():
+        if value <= THRESHOLD:
+            new_key = word_sign(w)
+            rare_emissions[(new_key, t)] = rare_emissions[(new_key, t)] + 1 if (new_key, t) in rare_emissions else 1
+            for_remove.append((w, t))
+    emissions.update(rare_emissions)
+    for key in for_remove:
+        emissions.pop(key)
 
 
-def parseFile(File):
-    """
-    makes a list of words, tags, and word and tags pairs
-    File : input file
-    returns: words, tags, and words and tags pairs
-    """
-    words = []
-    tags = []
-    wordsAndTags = []
-    for sentence in File.split('\n')[:-1]:  # add start tag for starting paragraph
-        tags.append('start')
-        tags.append('start')
-        for pair in sentence.split(' '):
-            word, tag = pair.rsplit("/", 1)  # if word contains / will be part of the word
-            words.append(word)
-            tags.append(tag)
-            wordsAndTags.append((word, tag))
-    return words, tags, wordsAndTags
+def calc_qmle(split_line):
+    # IN DT NNP -> [START,START,IN,DT,NNP,END]
+    split_line.insert(0, f"{START}/{START}")
+    split_line.insert(0, f"{START}/{START}")
+    split_line.append(f"{END}/{END}")
+
+    for i in range(len(split_line) - 2):
+        # In/IN an/DT Oct./NNP -> [IN, DT, NNP]
+        tagged_words = [split_line[j].rsplit('/', 1)[1] for j in range(i, i + 3)]
+        bigram = (tagged_words[0], tagged_words[1])
+        trigram = (tagged_words[0], tagged_words[1], tagged_words[2])
+        # Count(t1, t2)
+        transitions[bigram] = transitions[bigram] + 1 if bigram in transitions else 1
+        # Count(t1, t2, t3)
+        transitions[trigram] = transitions[trigram] + 1 if trigram in transitions else 1
 
 
-def qMLECalc(tags):
-    """
-    Compute q (p(y)) MLE and write to q_mle_filename.
-    tags: list of tags
-    """
-    # count triples, pairs and tags
-    tripletHist = Counter(zip(tags, tags[1:], tags[2:]))
-    pairsHist = Counter(zip(tags, tags[1:]))
-    tagsHist = Counter(tags)
-
-    # write MLE to file
-    f = open(q_mle_filename, 'w')
-    for tag1 in tagsHist:
-        f.write("%s\t%d\n " % (tag1, tagsHist[tag1]))
-        for tag2 in tagsHist:
-            f.write("%s %s\t%d\n " % (tag1, tag2, pairsHist[(tag1, tag2)]))
-            for tag3 in tagsHist:
-                f.write("%s %s %s\t%d\n " % (tag1, tag2, tag3, tripletHist[(tag1, tag2, tag3)]))
-    f.close()
+def calc_emle(split_line):
+    for tagged_word in split_line:
+        tagged_word = tagged_word.rsplit('/', 1)
+        word = tagged_word[0]
+        tag = tagged_word[1]
+        # count t
+        if tag in tags:
+            tags[tag] += 1
+        else:
+            tags[tag] = 0
+        # count w,t
+        if (word, tag) in emissions:
+            emissions[(word, tag)] += 1
+        else:
+            emissions[(word, tag)] = 1
 
 
-def eMLECalc(words, tags, wordsAndTags):
-    """
-    Compute e (p(x/y)) MLE and write to e_mle_filename.
-    words: list of words
-    tags: list of tags
-    wordsAndTags: pairs of words and their tag
-    """
+# P(t3|t1, t2) = LMBDA1*P(t3|t1, t2) + LMBDA2*P(t3|t2) +  LMBDA3*P(t3)
+def getQ(t1, t2, t3):
+    P_c_if_ab = transitions[(t1, t2, t3)] if (t1, t2, t3) in transitions else 0
+    P_c_if_b = transitions[(t2, t3)] if (t2, t3) in transitions else 0
+    P_c = tags[t3] if t3 in tags else 0
 
-    # handle UNK words
-    counter = Counter(words[:int(0.8 * len(words))])
-    # uniqueWords = set([word for word, appear in counter.iteritems() if appear == 1])
-    for idx, (word, tag) in enumerate(wordsAndTags):
-        if (idx > len(wordsAndTags) * 0.8) and (word not in counter):
-            wordsAndTags[idx] = (wordSign(word), tag)
-    for idx, word in enumerate(words):
-        if (idx > len(words) * 0.8) and (word not in counter):
-            words[idx] = (wordSign(word), tag)
-
-    # count tags and wordsAndTags and write MLE to file
-    wordAndTagsHist = Counter(wordsAndTags)
-
-    f = open(e_mle_filename, 'w')
-    for pair in wordAndTagsHist:
-        f.write("%s %s\t%d\n" % (pair[0], pair[1], wordAndTagsHist[pair]))
-    f.close()
+    interp = [P_c_if_ab, P_c_if_b, P_c]
+    P = sum(LMBDA * p for LMBDA, p in zip(LMBDAS, interp))
+    return np.log2(P)
 
 
-def wordSign(word):
-    try:
-        word = float(word)
-        return '*UNK-NUM*'
-    except ValueError:
-        pass  # it was a string, not an float.
-    if len(word) >= 3 and word[-3:-2] == ':':
-        return '*UNK-:*'
-    if any(x == '-' for x in word):
-        return '*UNK--*'
-    if not word.isalpha():
-        return '*UNK-char*'
-    if word[-2:] == 'ed':
-        return '*UNK-ED*'
-    if word[-3:] == 'ing':
-        return '*UNK-ING*'
-    if word[-2:] == 'ly':
-        return '*UNK-LY*'
-    if word.isupper():
-        return '*UNK-UPP*'
-    if word.istitle():
-        return '*UNK-TITLE*'
-    if any(x.isupper() for x in word):
-        return '*UNK-HAS-UPPER*'
-    if word[-1:] == 's':
-        return '*UNK-s*'
-    if len(word) < 3:
-        return '*UNK-SHORT*'
+# e(w|t)
+def getE(w, t):
+    if (w, t) in emissions:
+        # P(w|t) = Count(w,t) / Count(t)
+        return emissions[(w, t)] / tags[t]
     else:
-        return '*UNK-LONG*'
-    # return '*UNK*'
+        return emissions[(UNK, t)] if (UNK, t) in emissions else 0
 
 
-if __name__ == '__main__':
-    File = readInputFile()
-    words, tags, wordsAndTags = parseFile(File)
-    eMLECalc(words, tags, wordsAndTags)
-    qMLECalc(tags)
+def write_emle(emle):
+    file = open(emle, 'w')
+    for (w, t), count in emissions.items():
+        file.write(f"{w} {t}\t{count}\n")
+
+    file.close()
+
+
+def write_qmle(qmle):
+    file = open(qmle, 'w')
+    for key, value in transitions.items():
+        # bigram
+        if len(key) == 2:
+            file.write(f"{key[0]} {key[1]}\t{value}\n")
+        # trigram
+        else:
+            file.write(f"{key[0]} {key[1]} {key[2]}\t{value}\n")
+    file.close()
+
+
+def main():
+    input_file_name = sys.argv[1]
+    qmle = sys.argv[2]
+    emle = sys.argv[3]
+    calc_mle(input_file_name)
+    write_emle(emle)
+    write_qmle(qmle)
+
+
+if __name__ == "__main__":
+    main()

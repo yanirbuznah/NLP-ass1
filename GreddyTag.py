@@ -4,13 +4,8 @@ import sys
 from collections import defaultdict
 
 import numpy as np
+import utils
 
-import MLETrain
-
-transitions = {}
-emissions = {}
-tags = {}
-num_of_words = 0
 
 
 def greedyAlgorithm(lines, words_possible_tags):
@@ -32,12 +27,12 @@ def greedyAlgorithm(lines, words_possible_tags):
         line_tags = []
         for i, word in enumerate(line):
             if word not in words_possible_tags:
-                word = word.lower() if (word.lower() in words_possible_tags) else word_sign(word)
+                word = word.lower() if (word.lower() in words_possible_tags) else utils.word_sign(word)
             p_ti_wi = float('-inf')
             for t in words_possible_tags[word]:
-                q = interpulation(t, t_minus_1, t_minus_2)
-                e = getE(word, t)
-                prob = np.log2(q) + np.log2(e)
+                q = utils.interpulation(t, t_minus_1, t_minus_2)
+                e = utils.getE(word, t)
+                prob = 0 if e==0 or q == 0 else np.log2(q) + np.log2(e)
                 if prob > p_ti_wi:
                     p_ti_wi = prob
                     tag_i = t
@@ -48,126 +43,15 @@ def greedyAlgorithm(lines, words_possible_tags):
     return lines_tags
 
 
-# e(w|t)
-def getE(w, t):
-    if (w, t) in emissions:
-        # P(w|t) = Count(w,t) / Count(t)
-        return emissions[(w, t)] / tags[t]
-    else:
-        return emissions[(MLETrain.UNK, t)] if (MLETrain.UNK, t) in emissions else 0
-
-
-def interpulation(t1, t2, t3):
-    """
-    returns: p(c|a,b)
-    """
-    # lambda1 = 0.5
-    # lambda2 = 0.3
-
-    P_c_if_ab = transitions[(t1, t2, t3)] if (t1, t2, t3) in transitions else 0
-    P_b_if_a = transitions[(t1, t2)] if (t1, t2) in transitions else 1
-    P_c_if_b = transitions[(t2, t3)] if (t2, t3) in transitions else 0
-    P_b = tags[t2] if t2 in tags else 1
-    P_c = tags[t3] if t3 in tags else 0
-
-    return lambda1 * float(P_c_if_ab) / float(P_b_if_a) \
-           + lambda2 * float(P_c_if_b) / float(P_b) \
-           + (1.0 - lambda2 - lambda1) * float(P_c) / num_of_words
-
-
-def smooth(param):
-    if param not in emissions:
-        return 1 / sum(emissions.values())
-    else:
-        return float(emissions[param]) / float(tags[(param[1])])
-
-
-def get_dict(e_mle):
-    """
-    makes a dictionary for each word the tags it can have
-    q_mle_lines : q_mle
-    returns: dictionary
-    """
-
-    d = defaultdict(set)
-    for word, tag in e_mle:
-        d[word].add(tag)
-    return d
-
-
-def parse_mle_file(file):
-    mle = {}
-    with open(file, 'r') as f:
-        lines = f.readlines()
-    for line in lines:
-        key, val = line.split("\t")
-        tags = tuple(key.split())
-        mle[tags] = int(val)
-    return mle
-
-
-def lines_from_file(filePath):
-    with open(filePath, 'r') as f:
-        return f.readlines()
-
-
-def words_from_file(filePath):
-    return [line[:-1].split() for line in lines_from_file(filePath)]
-
-
-def accuarcy(predcited_tags, real_tags):
-    total = good = 0
-    for i, line in enumerate(predcited_tags):
-        for j, tag in enumerate(line):
-            total += 1
-            if tag == real_tags[i][j]:
-                good += 1
-    return float(good) / total
-
-
-def extract_tags_from_file(test_file):
-    def extract_tags(line):
-        return [word_tag.rsplit('/', 1)[-1] for word_tag in line]
-
-    seperated_lines = words_from_file(test_file)
-    return [extract_tags(line) for line in seperated_lines]
-
-
-def word_sign(word):
-    if not re.search(r'\w', word):
-        return '_PUNCS_'
-    elif re.search(r'[A-Z]', word):
-        return '_CAPITAL_'
-    elif re.search(r'\d', word):
-        return '_NUM_'
-    elif re.search(r'(ion\b|ty\b|ics\b|ment\b|ence\b|ance\b|ness\b|ist\b|ism\b)', word):
-        return '_NOUNLIKE_'
-    elif re.search(r'(ate\b|fy\b|ize\b|\ben|\bem)', word):
-        return '_VERBLIKE_'
-    elif re.search(r'(\bun|\bin|ble\b|ry\b|ish\b|ious\b|ical\b|\bnon)', word):
-        return '_ADJLIKE_'
-    else:
-        return '*RARE*'
-
-
-
-def get_tags(emissions):
-    tags = {}
-    for e in emissions:
-        tags[e[1]] = emissions[e] + tags[e[1]] if e[1] in tags else emissions[e]
-    return tags
-
-lambda1 = 0.0
-lambda2 = 0.0
 
 if __name__ == '__main__':
     input_file_name, q_mle_filename, e_mle_filename, output_file_name, extra_file = sys.argv[1:]
-    words = words_from_file(input_file_name)
-    transitions = parse_mle_file(q_mle_filename)
-    emissions = parse_mle_file(e_mle_filename)
-    tags = get_tags(emissions)
-    num_of_words = sum(emissions.values())
-    real_tags = extract_tags_from_file('ass1-tagger-dev')
+    seperated_lines = utils.seperated_lines_from_file(input_file_name)
+    utils.transitions = utils.parse_mle_file(q_mle_filename)
+    utils.emissions = utils.parse_mle_file(e_mle_filename)
+    utils.tags = utils.get_tags(utils.emissions)
+    utils.num_of_words = sum(utils.emissions.values())
+    real_tags = utils.extract_tags_from_file('ass1-tagger-dev')
     best = 0
     for i in range(1000):
         x = np.random.random()
@@ -176,8 +60,8 @@ if __name__ == '__main__':
         s = x+y+z
         lambda1 = max(x/s,y/s)
         lambda2 = min(x/s,y/s)
-        predicted_tags = greedyAlgorithm(words, words_possible_tags=get_dict(emissions))
-        accuracy = accuarcy(predicted_tags, real_tags)
+        predicted_tags = greedyAlgorithm(seperated_lines, words_possible_tags=utils.get_dict(utils.emissions))
+        accuracy = utils.calc_accuracy(predicted_tags, real_tags)
         if accuracy > best:
             best = accuracy
             print(f'lambda1: {lambda1},lambda2: {lambda2},lambda3: {1.0-lambda1-lambda2}')
