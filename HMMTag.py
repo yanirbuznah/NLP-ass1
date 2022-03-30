@@ -60,18 +60,12 @@ if __name__ == '__main__':
         y = np.random.random()
         z = np.random.random()
         s = x+y+z
-        lambda1 = max(x/s,y/s)
-        lambda2 = min(x/s,y/s)
+        utils.lambda1 = x/s
+        utils.lambda2 = y/s
         predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
 
         accuracy = utils.calc_accuracy(predicted_tags, real_tags)
         if accuracy > best:
             best = accuracy
-            print(f'lambda1: {lambda1},lambda2: {lambda2},lambda3: {1.0-lambda1-lambda2}')
+            print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0-utils.lambda1-utils.lambda2}')
             print(f"accuracy:  {str(accuracy)}")
-    # input_tags = vitterbiAlgorithm(words, emissions, transitions, gt.get_dict(emissions),num_of_words)
-    # # real_tags = gt.extract_tags_from_file('ass1-tagger-train')
-    # accuracy = gt.accuracy(input_tags, real_tags)
-    # print ("result: " + str(accuracy))
-    # print(time.time() - start)
-    # open(output_file_name, 'w').write(gt.tagInputData(inputData, inputTags))
