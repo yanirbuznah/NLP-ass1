@@ -24,7 +24,7 @@ def calc_mle(input_file_name):
     for_remove = []
     for (w, t), value in emissions.items():
         if value <= THRESHOLD:
-            new_key = word_sign(w)
+            new_key = '^' + word_sign(w)
             rare_emissions[(new_key, t)] = rare_emissions[(new_key, t)] + 1 if (new_key, t) in rare_emissions else 1
             for_remove.append((w, t))
     emissions.update(rare_emissions)

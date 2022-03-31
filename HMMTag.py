@@ -1,6 +1,5 @@
 import sys
 import time
-
 import numpy as np
 import utils
 
@@ -11,7 +10,8 @@ def vitterbiAlgorithm(lines, words_possible_tags):
         bp = []
 
         for i, word in enumerate(line):
-            word = word.lower() if (word.lower() in words_possible_tags) else utils.word_sign(word)
+            if word not in words_possible_tags:
+                word = word.lower() if (word.lower() in words_possible_tags) else utils.word_sign(word)
             max_p = {}
             argmax_tag = {}
             for t2, t1 in v[i]:
@@ -54,19 +54,19 @@ if __name__ == '__main__':
     utils.emissions = utils.parse_mle_file(e_mle_filename)
     utils.tags = utils.get_tags(utils.emissions)
     utils.num_of_words = sum(utils.emissions.values())
-    real_tags = utils.extract_tags_from_file('ass1-tagger-dev')
+    real_tags = utils.extract_tags_from_file('ass1data\\data\\ass1-tagger-dev')
     best = 0
-    for i in range(1000):
-        x = np.random.random()
-        y = np.random.random()
-        z = np.random.random()
-        s = x+y+z
-        utils.lambda1 = 0.125
-        utils.lambda2 = 0.4
-        predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
+    # for i in range(1000):
+    # x = np.random.random()
+    # y = np.random.random()
+    # z = np.random.random()
+    # s = x+y+z
+    utils.lambda1 = 0.125
+    utils.lambda2 = 0.4
+    predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
 
-        accuracy = utils.calc_accuracy(predicted_tags, real_tags)
-        if accuracy > best:
-            best = accuracy
-            print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0-utils.lambda1-utils.lambda2}')
-            print(f"accuracy:  {str(accuracy)}")
+    accuracy = utils.calc_accuracy(predicted_tags, real_tags)
+    if accuracy > best:
+        best = accuracy
+        print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0-utils.lambda1-utils.lambda2}')
+        print(f"accuracy:  {str(accuracy)}")
