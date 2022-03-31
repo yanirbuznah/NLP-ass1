@@ -1,9 +1,6 @@
 import sys
-
 import numpy as np
-
 from utils import *
-
 
 def calc_mle(input_file_name):
     file = open(input_file_name, 'r')
@@ -49,25 +46,20 @@ def calc_emle(split_line):
         word = tagged_word[0]
         tag = tagged_word[1]
         # count t
-        if tag in tags:
-            tags[tag] += 1
-        else:
-            tags[tag] = 0
+        tags[tag] = tags[tag] + 1 if tag in tags else 0
         # count w,t
-        if (word, tag) in emissions:
-            emissions[(word, tag)] += 1
-        else:
-            emissions[(word, tag)] = 1
+        emissions[(word, tag)] =  emissions[(word, tag)] + 1 if (word, tag) in emissions else 1
 
 
-# P(t3|t1, t2) = LMBDA1*P(t3|t1, t2) + LMBDA2*P(t3|t2) +  LMBDA3*P(t3)
+# P(t3|t1, t2) = LMBDA1*P(t3|t1, t2) + LMBDA2*P(t3|t2) +  (1-LMBDA1-LMBDA2)*P(t3)
 def getQ(t1, t2, t3):
-    P_c_if_ab = transitions[(t1, t2, t3)] if (t1, t2, t3) in transitions else 0
-    P_c_if_b = transitions[(t2, t3)] if (t2, t3) in transitions else 0
-    P_c = tags[t3] if t3 in tags else 0
+    P_c_if_ab = transitions[(t1, t2, t3)] if (t1, t2, t3) in transitions else 1
+    P_c_if_b = transitions[(t2, t3)] if (t2, t3) in transitions else 1
+    P_c = transitions[(t3)] if t3 in transitions else 1
 
     interp = [P_c_if_ab, P_c_if_b, P_c]
-    P = sum(LMBDA * p for LMBDA, p in zip(LMBDAS, interp))
+    lambdas = [lambda1,lambda2,1-lambda1-lambda2]
+    P = sum(LMBDA * p for LMBDA, p in zip(lambdas, interp))
     return np.log2(P)
 
 
@@ -84,19 +76,21 @@ def write_emle(emle):
     file = open(emle, 'w')
     for (w, t), count in emissions.items():
         file.write(f"{w} {t}\t{count}\n")
-
     file.close()
 
 
 def write_qmle(qmle):
     file = open(qmle, 'w')
-    for key, value in transitions.items():
+    for key, count in transitions.items():
         # bigram
         if len(key) == 2:
-            file.write(f"{key[0]} {key[1]}\t{value}\n")
+            file.write(f"{key[0]} {key[1]}\t{count}\n")
         # trigram
-        else:
-            file.write(f"{key[0]} {key[1]} {key[2]}\t{value}\n")
+        elif len(key) == 3:
+            file.write(f"{key[0]} {key[1]} {key[2]}\t{count}\n")
+    for tag, count in tags.items():
+        # unigram
+        file.write(f"{tag}\t{count}\n")
     file.close()
 
 

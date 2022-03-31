@@ -1,9 +1,7 @@
 import re
-
-
-# rarity threshold
 from collections import defaultdict
 
+# rarity threshold
 THRESHOLD = 1
 # tokens
 UNK = '*UNK*'
