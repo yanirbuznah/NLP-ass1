@@ -14,24 +14,25 @@ def vitterbiAlgorithm(lines, words_possible_tags):
             word = word.lower() if (word.lower() in words_possible_tags) else utils.word_sign(word)
             max_p = {}
             argmax_tag = {}
-            for t_tag, t in v[i]:
-                for r in words_possible_tags[word]:
-                    e = utils.getE(word, r)
-                    q = utils.interpulation(t_tag, t, r)
-                    temp = v[i][(t_tag, t)] + np.log2(q) + np.log2(e)
-                    if (t, r) not in max_p or temp > max_p[(t, r)]:
-                        max_p[(t, r)] = temp
-                        argmax_tag[(t, r)] = t_tag
+            for t2, t1 in v[i]:
+                for t in words_possible_tags[word]:
+                    e = utils.smooth((word, t))
+                    q = utils.interpulation(t, t1, t2)
+
+                    temp = v[i][(t2, t1)] + np.log2(q) + np.log2(e)
+                    if (t1, t) not in max_p or temp > max_p[(t1, t)]:
+                        max_p[(t1, t)] = temp
+                        argmax_tag[(t1, t)] = t2
             v.append(max_p)
             bp.append(argmax_tag)
 
-        tags = get_line_tags(bp, v)
+        tags = get_best_tags_path(bp, v)
         final_line_tags.append(tags)
 
     return final_line_tags
 
 
-def get_line_tags(bp, v):
+def get_best_tags_path(bp, v):
     # get the best tags
     before_last_tag, last_tag = max(v[-1], key=lambda tuple: tuple[-1])
     tags = [last_tag] + [before_last_tag] if before_last_tag != utils.START else [last_tag]
@@ -60,8 +61,8 @@ if __name__ == '__main__':
         y = np.random.random()
         z = np.random.random()
         s = x+y+z
-        utils.lambda1 = x/s
-        utils.lambda2 = y/s
+        utils.lambda1 = 0.125
+        utils.lambda2 = 0.4
         predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
 
         accuracy = utils.calc_accuracy(predicted_tags, real_tags)

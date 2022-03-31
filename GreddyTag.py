@@ -58,8 +58,8 @@ if __name__ == '__main__':
         y = np.random.random()
         z = np.random.random()
         s = x+y+z
-        lambda1 = max(x/s,y/s)
-        lambda2 = min(x/s,y/s)
+        lambda1 = 0.65 #max(x/s,y/s)
+        lambda2 = 0.21 #min(x/s,y/s)
         predicted_tags = greedyAlgorithm(seperated_lines, words_possible_tags=utils.get_dict(utils.emissions))
         accuracy = utils.calc_accuracy(predicted_tags, real_tags)
         if accuracy > best:

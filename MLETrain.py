@@ -1,16 +1,25 @@
 import sys
+from collections import Counter
+
 import numpy as np
+
+import utils
 from utils import *
 
 def calc_mle(input_file_name):
     file = open(input_file_name, 'r')
     lines = file.readlines()
     file.close()
+    words_tags = []
     for line in lines:
         # remove trailing '\n' and split by ' '
+        tuples = [tuple(pair.rsplit('/', 1)) for pair in line.strip().split(' ')]
+        words_tags += tuples
         split_line = line.strip().split(' ')
         calc_emle(split_line)
         calc_qmle(split_line)
+    # rare_emissions = count_patterns(words_tags)
+    # x = 43
     rare_emissions = {}
     for_remove = []
     for (w, t), value in emissions.items():
@@ -21,6 +30,43 @@ def calc_mle(input_file_name):
     emissions.update(rare_emissions)
     for key in for_remove:
         emissions.pop(key)
+
+def count_patterns(words_tags):
+        unknown_token = utils.UNK
+        num_occurrences = utils.THRESHOLD
+        words_tags_counter = emissions
+        # Count the number of occurrences of each word in the training set.
+        counter = Counter([pair[0] for pair in words_tags])
+
+        rare = set()
+
+        # Collect the words in the training set that appear only once and consider them as rare wards.
+        for word, amount in counter.items():
+            if amount <= num_occurrences:
+                rare.add(word)
+
+        pattern_e_counts = Counter()
+
+        # Go over each word and its associated tag that were found in the training set.
+        for word, tag in set(words_tags):
+
+            if word in rare:  # If the word is rare.
+
+                # Find its fit word-signature pattern and update the word-signature count for its associated tag.
+                signature = utils.word_sign(word) if utils.word_sign(word) is not None else unknown_token
+                pattern_e_counts[(signature ,tag)] += words_tags_counter[(word,tag)]
+
+            else:  # Otherwise
+
+                # Find the fit word-signature pattern, if exists.
+                signature = utils.word_sign(word)
+
+                # If there is a word-signature pattern that fits.
+                if signature is not None:
+                    # Then update the word-signature count for the word's associated tag.
+                    pattern_e_counts[(signature, tag)] += words_tags_counter[(word, tag)]
+
+        return pattern_e_counts
 
 
 def calc_qmle(split_line):
