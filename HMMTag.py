@@ -45,7 +45,6 @@ def get_best_tags_path(bp, v):
     return tags
 
 
-
 if __name__ == '__main__':
     start = time.time()
     input_file_name, q_mle_filename, e_mle_filename, output_file_name, extra_file = sys.argv[1:]

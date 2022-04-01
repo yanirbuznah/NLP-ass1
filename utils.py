@@ -4,7 +4,7 @@ from collections import defaultdict
 # rarity threshold
 THRESHOLD = 1
 # tokens
-UNK = '*UNK*'
+UNK = '^UNK'
 START = '*START*'
 END = '*END*'
 # interpulation contants
@@ -19,35 +19,35 @@ num_of_words = 0
 
 def word_sign(word):
     if not re.search(r'\w', word):
-        return '_PUNCS_'
+        return '^PUNCS'
     elif re.search(r'[A-Z]', word):
-        return '_CAPITAL_'
+        return '^CAPITAL'
     elif re.search(r'\d', word):
-        return '_NUM_'
+        return '^NUM'
     elif re.search(r'(ion\b|ty\b|ics\b|ment\b|ence\b|ance\b|ness\b|ist\b|ism\b)', word):
-        return '_NOUNLIKE_'
+        return '^NOUNLIKE'
     elif re.search(r'(ate\b|fy\b|ize\b|\ben|\bem)', word):
-        return '_VERBLIKE_'
+        return '^VERBLIKE'
     elif re.search(r'(\bun|\bin|ble\b|ry\b|ish\b|ious\b|ical\b|\bnon)', word):
-        return '_ADJLIKE_'
+        return '^ADJLIKE'
     elif re.search(r'(ing\b)', word):
-        return '_UNK_ing_'
+        return '^UNK-ing'
     elif len(word) >= 3 and word[-3:-2] == ':':
-        return '*UNK-:*'
+        return '^UNK-:'
     if any(x == '-' for x in word):
-        return '*UNK--*'
+        return '^UNK--'
     if not word.isalpha():
-        return '*UNK-char*'
+        return '^UNK-char'
     if word[-2:] == 'ed':
-        return '*UNK-ED*'
+        return '^UNK-ED'
     if word[-3:] == 'ing':
-        return '*UNK-ING*'
+        return '^UNK-ING'
     if word[-2:] == 'ly':
-        return '*UNK-LY*'
+        return '^UNK-LY'
     # if word.isupper():
     #     return '*UNK-UPP*'
     if word.istitle():
-        return '*UNK-TITLE*'
+        return '^UNK-TITLE'
     # if any(x.isupper() for x in word):
     #     return '*UNK-HAS-UPPER*'
     # if word[-1:] == 's':
