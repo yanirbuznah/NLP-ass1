@@ -53,7 +53,7 @@ if __name__ == '__main__':
     utils.emissions = utils.parse_mle_file(e_mle_filename)
     utils.tags = utils.get_tags(utils.emissions)
     utils.num_of_words = sum(utils.emissions.values())
-    real_tags = utils.extract_tags_from_file('ass1data\\data\\ass1-tagger-dev')
+    real_tags = utils.extract_tags_from_file('ass1data/data/ass1-tagger-dev')
     best = 0
     # for i in range(1000):
     # x = np.random.random()
@@ -67,5 +67,5 @@ if __name__ == '__main__':
     accuracy = utils.calc_accuracy(predicted_tags, real_tags)
     if accuracy > best:
         best = accuracy
-        print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0-utils.lambda1-utils.lambda2}')
+        print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')
         print(f"accuracy:  {str(accuracy)}")

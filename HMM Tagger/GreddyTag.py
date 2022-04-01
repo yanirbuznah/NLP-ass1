@@ -1,7 +1,5 @@
-import re
 import sys
 # from MLETrain import wordSign
-from collections import defaultdict
 
 import numpy as np
 import utils
@@ -51,7 +49,7 @@ if __name__ == '__main__':
     utils.emissions = utils.parse_mle_file(e_mle_filename)
     utils.tags = utils.get_tags(utils.emissions)
     utils.num_of_words = sum(utils.emissions.values())
-    real_tags = utils.extract_tags_from_file('ass1data\\data\\ass1-tagger-dev')
+    real_tags = utils.extract_tags_from_file('ass1data/data/ass1-tagger-dev')
     best = 0
     # for i in range(1000):
     #     x = np.random.random()
