@@ -1,57 +1,57 @@
 import sys
 from collections import Counter
-from xml.sax.handler import feature_external_ges
 
 # rarity threshold
-THRESHOLD = 1
+THRESHOLD = 2
 # tokens
 UNK = '^UNK'
 START = '*START*'
 END = '*END*'
 
-word_counter = {}
+
 
 # TODO: what to do about short words?
 def get_prefs(wi):
     prefs = {}
     wi_len = len(wi)
-    if wi_len >= 4:
-        prefs['pref4'] = wi[0:4]
-    if wi_len >=3:
-        prefs['pref3'] = wi[0:3]
-    if wi_len >=2:
-        prefs['pref2'] = wi[0:2]
-    prefs['pref1'] = wi[0]
+    prefs['pref6'] = wi[:6] if wi_len >= 6 else ""
+    prefs['pref5'] = wi[:5] if wi_len >= 5 else ""
+    prefs['pref4'] = wi[:4] if wi_len >= 4 else ""
+    prefs['pref3'] = wi[:3] if wi_len >= 3 else ""
+    prefs['pref2'] = wi[:2] if wi_len >= 2 else ""
+    prefs['pref1'] = wi[0] if wi_len >= 1 else ""
     return prefs
+
 
 def get_suffs(wi):
     suffs = {}
     wi_len = len(wi)
-    if wi_len >= 4:
-        suffs['suff4'] = wi[-4:0]
-    if wi_len >=3:
-        suffs['suff3'] = wi[-3:0]
-    if wi_len >=2:
-        suffs['suff2'] = wi[-2:0]
-    suffs['suff1'] = wi[-1]
+    suffs['suff6'] = wi[-6:] if wi_len >= 6 else ""
+    suffs['suff5'] = wi[-5:] if wi_len >= 5 else ""
+    suffs['suff4'] = wi[-4:] if wi_len >= 4 else ""
+    suffs['suff3'] = wi[-3:] if wi_len >= 3 else ""
+    suffs['suff2'] = wi[-2:] if wi_len >= 2 else ""
+    suffs['suff1'] = wi[-1] if wi_len >= 1 else ""
     return suffs
+
 
 def get_rare_features(wi):
     features = {}
 
     features.update(get_prefs(wi))
     features.update(get_suffs(wi))
-    number, upper, hyphen = False
+    number, upper, hyphen = False,False,False
     for ch in wi:
-        number = number or ch.isdigit()
-        upper = upper or ch.isupper()
-        hyphen = hyphen or ch == '-'
+        number = int(number or ch.isdigit())
+        upper = int(upper or ch.isupper())
+        hyphen = int(hyphen or ch == '-')
     features.update({
-                    'number':number,
-                    'upper':upper,
-                    'hyphen':hyphen
-                    })
+        'number': number,
+        'upper': upper,
+        'hyphen': hyphen
+    })
     return features
+
 
 def extract(sent: list, i, last_two_tags: tuple, rare: bool) -> dict:
     """
@@ -62,22 +62,27 @@ def extract(sent: list, i, last_two_tags: tuple, rare: bool) -> dict:
     :return: features by using extract features similar to the article (https://u.cs.biu.ac.il/~89-680/memm-paper.pdf)
     """
     # featues for all words
-    features = {
-                'word_i-1':sent[i-1] if i > 0 else START,
-                'word_i-2':sent[i-2] if i > 1 else START,
-                'word_i+1':sent[i+1] if len(sent) <= i else END,
-                'word_i+2':sent[i+2] if len(sent) < i else END,
-                'tag_i-1':last_two_tags[0],
-                'tag_i-2':last_two_tags[1]
-                }
-
     wi = sent[i]
-    # features for rare words
-    if rare:
-        features.update(get_rare_features(wi))
-    # features for common words
-    else:
-        features['form'] = wi
+    features = {
+        'word_i-1': sent[i - 1] if i > 0 else START,
+        'word_i-2': sent[i - 2] if i > 1 else START,
+        'word_i+1': sent[i + 1] if len(sent) > i + 1  else END,
+        'word_i+2': sent[i + 2] if len(sent) > i + 2 else END,
+        'tag_i-1': last_two_tags[0],
+        'tag_i-2': last_two_tags[1],
+        'form': wi if not rare else UNK
+    }
+    features.update(get_rare_features(wi))
+
+    # # features for rare words
+    # if rare:
+    #     features.update(get_rare_features(wi))
+    # # features for common words
+    # else:
+    #     features['form'] = wi
+    #
+    # features.update(get_prefs(wi))
+    # features.update(get_suffs(wi))
 
     return features
 

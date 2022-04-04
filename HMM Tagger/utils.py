@@ -65,16 +65,16 @@ def word_sign(word):
         return 'UNK_NUM'
     if re.search(r'^[0-9]+:[0-9]+$', word) is not None:
         return 'UNK_HOUR'
-    if re.search(r'^[0-9]+/[0-9]+-[a-zA-Z]+[-]?[a-zA-Z]*$', word) is not None:
-        return 'UNK_FRUC-WORD'
-    if re.search(r'^[A-Z]+-[A-Z]+$', word) is not None:
-        return 'UNK_AA-AA'
-    if re.search(r'^[a-z]+-[a-z]+$', word) is not None:
-        return 'UNK_aa-aa'
-    if re.search(r'^[A-Z][a-z]+-[A-Z][a-z]+$', word) is not None:
-        return 'UNK_Aa-Aa'
-    if re.search(r'^[A-Z]+$', word) is not None:
-        return 'UNK_UPPER_CASE'
+    # if re.search(r'^[0-9]+/[0-9]+-[a-zA-Z]+[-]?[a-zA-Z]*$', word) is not None:
+    #     return 'UNK_FRUC-WORD'
+    # if re.search(r'^[A-Z]+-[A-Z]+$', word) is not None:
+    #     return 'UNK_AA-AA'
+    # if re.search(r'^[a-z]+-[a-z]+$', word) is not None:
+    #     return 'UNK_aa-aa'
+    # if re.search(r'^[A-Z][a-z]+-[A-Z][a-z]+$', word) is not None:
+    #     return 'UNK_Aa-Aa'
+    # if re.search(r'^[A-Z]+$', word) is not None:
+    #     return 'UNK_UPPER_CASE'
     if re.search(r'^[A-Z][a-z]+$', word) is not None:
         return 'UNK_Aa'
 
@@ -136,10 +136,10 @@ def word_sign(word):
         return 'UNK_FUL'
     if word[-2:] == 'ic' or word[-4:] == 'ical':
         return 'UNK_IC'
-    if word[-4:] == 'ious' or word[-3:] == 'ous':
+    if word[-3:] == 'ous':
         return 'UNK_OUS'
-    if word[-3:] == 'ish':
-        return 'UNK_ISH'
+    # if word[-3:] == 'ish':
+    #     return 'UNK_ISH'
     if word[-3:] == 'ive':
         return 'UNK_IVE'
     if word[-4:] == 'less':
@@ -184,8 +184,10 @@ def smooth(param):
 
 def get_dict(e_mle):
     d = defaultdict(set)
-    for word, tag in e_mle:
-        d[word].add(tag)
+    mle_sorted = dict(sorted(e_mle.items(), key=lambda item: item[1]))
+    for word, tag in reversed(mle_sorted):
+        if len(d[word]) < 4:
+            d[word].add(tag)
     return d
 
 

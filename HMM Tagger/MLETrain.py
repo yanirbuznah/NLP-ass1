@@ -19,7 +19,7 @@ def calc_mle(input_file_name):
         calc_emle(split_line)
         calc_qmle(split_line)
     # rare_emissions = count_patterns(words_tags)
-    # x = 43
+
     rare_emissions = {}
     for_remove = []
     for (w, t), value in emissions.items():
