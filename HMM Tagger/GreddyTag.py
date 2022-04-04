@@ -52,7 +52,7 @@ if __name__ == '__main__':
     real_tags = utils.extract_tags_from_file('../ass1-tagger-dev')
     best = 0
     utils.lambda1 = 0.5
-    utils.lambda2 = 0.05
+    utils.lambda2 = 0.1
     predicted_tags = greedyAlgorithm(seperated_lines, words_possible_tags=utils.get_dict(utils.emissions))
     accuracy = utils.calc_accuracy(predicted_tags, real_tags)
     if accuracy > best:
