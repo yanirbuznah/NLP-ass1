@@ -15,7 +15,7 @@ def vitterbiAlgorithm(lines, words_possible_tags):
             max_p = {}
             argmax_tag = {}
             for t2, t1 in v[i]:
-                for t in words_possible_tags[word]:
+                for t in sorted(words_possible_tags[word]):
                     e = utils.smooth((word, t))
                     q = utils.interpulation(t, t1, t2)
 
@@ -55,17 +55,26 @@ if __name__ == '__main__':
     utils.num_of_words = sum(utils.emissions.values())
     real_tags = utils.extract_tags_from_file('../ass1-tagger-dev')
     best = 0
-    for i in range(1000):
-        x = np.random.random()
-        y = np.random.random()
-        z = np.random.random()
-        s = x+y+z
-        utils.lambda1 = 0.5
-        utils.lambda2 = 0.4
-        predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
+    utils.lambda1 = 0.8
+    utils.lambda2 = 0.1
+    predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
 
-        accuracy = utils.calc_accuracy(predicted_tags, real_tags)
-        if accuracy > best:
-            best = accuracy
-            print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')
-            print(f"accuracy:  {str(accuracy)}")
+    accuracy = utils.calc_accuracy(predicted_tags, real_tags)
+    if accuracy > best:
+        best = accuracy
+        print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')
+        print(f"accuracy:  {str(accuracy)}")
+    # for i in range(1000):
+    #     x = np.random.random()
+    #     y = np.random.random()
+    #     z = np.random.random()
+    #     s = x+y+z
+    #     utils.lambda1 = x/s
+    #     utils.lambda2 = y/s
+    #     predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
+    #
+    #     accuracy = utils.calc_accuracy(predicted_tags, real_tags)
+    #     if accuracy > best:
+    #         best = accuracy
+    #         print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')
+    #         print(f"accuracy:  {str(accuracy)}")

@@ -27,7 +27,7 @@ def greedyAlgorithm(lines, words_possible_tags):
             if word not in words_possible_tags:
                 word = word.lower() if (word.lower() in words_possible_tags) else utils.word_sign(word)
             p_ti_wi = float('-inf')
-            for t in words_possible_tags[word]:
+            for t in set(words_possible_tags[word]):
                 q = utils.interpulation(t, t_minus_1, t_minus_2)
                 e = utils.getE(word, t)
                 prob = 0 if e==0 or q == 0 else np.log2(q) + np.log2(e)
@@ -49,18 +49,26 @@ if __name__ == '__main__':
     utils.emissions = utils.parse_mle_file(e_mle_filename)
     utils.tags = utils.get_tags(utils.emissions)
     utils.num_of_words = sum(utils.emissions.values())
-    real_tags = utils.extract_tags_from_file('ass1data/data/ass1-tagger-dev')
+    real_tags = utils.extract_tags_from_file('../ass1-tagger-dev')
     best = 0
-    # for i in range(1000):
-    #     x = np.random.random()
-    #     y = np.random.random()
-    #     z = np.random.random()
-    #     s = x+y+z
-    lambda1 = 0.65 #max(x/s,y/s)
-    lambda2 = 0.21 #min(x/s,y/s)
+    utils.lambda1 = 0.5
+    utils.lambda2 = 0.05
     predicted_tags = greedyAlgorithm(seperated_lines, words_possible_tags=utils.get_dict(utils.emissions))
     accuracy = utils.calc_accuracy(predicted_tags, real_tags)
     if accuracy > best:
         best = accuracy
-        print(f'lambda1: {lambda1},lambda2: {lambda2},lambda3: {1.0-lambda1-lambda2}')
+        print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')
         print(f"accuracy:  {str(accuracy)}")
+    for i in range(1000):
+        x = np.random.random()
+        y = np.random.random()
+        z = np.random.random()
+        s = x+y+z
+        utils.lambda1 = x/s
+        utils.lambda2 = y/s
+        predicted_tags = greedyAlgorithm(seperated_lines, words_possible_tags=utils.get_dict(utils.emissions))
+        accuracy = utils.calc_accuracy(predicted_tags, real_tags)
+        if accuracy > best:
+            best = accuracy
+            print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0-utils.lambda1-utils.lambda2}')
+            print(f"accuracy:  {str(accuracy)}")
