@@ -235,3 +235,11 @@ def get_tags(emissions):
         tags[e[1]] = emissions[e] + tags[e[1]] if e[1] in tags else emissions[e]
     return tags
 
+def write_output_file(predicted_tags, sentences,out_file_name):
+    with open(out_file_name, "w") as out_file:
+        for sent_idx, line in enumerate(sentences):
+            for i, (word, tag) in enumerate(zip(line, predicted_tags[sent_idx])):
+                if i + 1 < len(line):
+                    out_file.write(f'{word}/{tag} ')
+                else:
+                    out_file.write(f'{word}/{tag}\n')

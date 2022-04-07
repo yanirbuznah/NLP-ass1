@@ -9,6 +9,8 @@ import utils
 def vitterbiAlgorithm(lines, words_possible_tags):
     final_line_tags = []
     for line_number, line in enumerate(lines):
+
+
         v = [{(utils.START, utils.START): 1}]
         bp = []
 
@@ -67,6 +69,7 @@ if __name__ == '__main__':
     predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
 
     accuracy = utils.calc_accuracy(predicted_tags, real_tags)
+    utils.write_output_file(predicted_tags,lines,output_file_name)
     if accuracy > best:
         best = accuracy
         print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')

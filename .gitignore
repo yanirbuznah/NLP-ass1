@@ -1,3 +1,11 @@
 .vscode/launch.json
 *.mle
 __pycache__/utils.cpython-39.pyc
+/output_greedy
+/new_f_file
+/features_file
+/feature_map_file
+/Local Feature-based Tagger/output
+/Local Feature-based Tagger/model_file_best
+/Local Feature-based Tagger/f1
+/Local Feature-based Tagger/f

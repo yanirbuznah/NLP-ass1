@@ -53,14 +53,7 @@ def main():
     acc = utils.calc_accuracy(real_tags,predicted_tags)
     print(acc)
 
-
-    with open(out_file_name, "w") as out_file:
-        for sent_idx, line in enumerate(sentences):
-            for i, (word, tag) in enumerate(zip(line, predicted_tags[sent_idx])):
-                if i + 1 < len(line):
-                    out_file.write(f'{word}/{tag} ')
-                else:
-                    out_file.write(f'{word}/{tag}\n')
+    utils.write_output_file(predicted_tags, sentences,out_file_name)
 
 
 
