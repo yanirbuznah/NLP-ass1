@@ -3,69 +3,64 @@ import sys
 import utils
 from ExtractFeatures import extract
 input_file_name, model_name, feature_map_file, out_file_name = sys.argv[1:]
+START_TAG = '^S^'
 
-START_TAG = '*START*'
+"""
+for efficient computing we predict tags by indexs. (word[0,0],word[1,0]... word[n,0] .... word[0,1],word[1,1]...)
+and not for every line (words[0,0],words[0,1]...words[0,n],words[1,0]....words[n,n])
+
+"""
 
 def main():
 
+    #Get information from all the files.
+    with open(input_file_name,'r') as fr:
+        lines = fr.readlines()
 
-    # Read the input data.
-    with open(input_file_name, "r", encoding="utf-8") as input_file:
-        input_data = input_file.readlines()
+    with open(feature_map_file, 'rb') as f:
+        v = pickle.load(f)
+        train_words = pickle.load(f)
 
-    # Parse the sentences in the input data and find the longest sentence length.
-    all_sent = [line.strip().split(' ') for line in input_data]
-    len_longest_sent = max([len(sent) for sent in all_sent])
-
-    # List to hold the last two predictions of each sentence in the data.
-    last_two_tags = [(START_TAG, START_TAG) for _ in range(len(all_sent))]
-
-    # Dictionary to hold the predictions of each sentence in the data.
-    tags = {new_list: [] for new_list in range(len(all_sent))}
-
-    # Load the DictVectorizer object and the training set words.
-    with open(feature_map_file, 'rb') as file:
-        v = pickle.load(file)
-        train_words = pickle.load(file)
-
-    # Load the trained Logistic Regression model.
     log_reg = pickle.load(open(model_name, 'rb'))
 
-    # For word in position i in each sentence.
-    for i in range(len_longest_sent):
+    # prepare all sentences and tags for the predictions
+    sentences = [l.strip().split() for l in lines]
+    num_of_sentences = len(sentences)
+    longest_sentence = max([len(s) for s in sentences])
+    last_two_tags = [(START_TAG, START_TAG)] * num_of_sentences
+    predicted_tags = [[] for _ in range(num_of_sentences)]
+    sentences_indexes = list(range(num_of_sentences))
 
-        # Gather all sentence indexes participating in the current iteration.
-        cur_iteration_sentences = [j for j, sent in enumerate(all_sent) if i + 1 <= len(sent)]
+    for i in range(longest_sentence):
+        features_i = []
 
-        position_i_features_dicts = []
+        for sent_idx in sentences_indexes:
+            features = extract(sentences[sent_idx], i, last_two_tags[sent_idx], not sentences[sent_idx][i] in train_words)
+            features_i.append(features)
 
-        # For word in position i in each of the current iteration sentences.
-        for sent_idx in cur_iteration_sentences:
-            # Extract the word's features.
-            features = extract(all_sent[sent_idx], i, last_two_tags[sent_idx],
-                               not all_sent[sent_idx][i] in train_words)
-            position_i_features_dicts.append(features)
+        features_i = v.transform(features_i)
+        pred_tags = log_reg.predict(features_i)
 
-        # Convert all features of all words in position i into feature vectors.
-        feature_vectors = v.transform(position_i_features_dicts)
-
-        # Predict tag for each words in position i of the current iteration's sentences.
-        pred_tags = log_reg.predict(feature_vectors)
-
-        # Save the prediction to each word in position i and update for each sentence its last two tags.
-        for sent_idx, tag in zip(cur_iteration_sentences, pred_tags):
-            tags[sent_idx].append(tag)
+        for sent_idx, tag in zip(sentences_indexes, pred_tags):
+            predicted_tags[sent_idx].append(tag)
             last_two_tags[sent_idx] = (last_two_tags[sent_idx][1], tag)
-    real_tags = utils.extract_tags_from_file('../ass1-tagger-dev')
-    acc = utils.calc_accuracy(real_tags,tags)
+
+        indexes_for_removes = [j for j in sentences_indexes if i+1 == len(sentences[j])]
+        for j in indexes_for_removes:
+            sentences_indexes.remove(j)
+
+    real_tags = utils.extract_tags_from_file('../ass1data/data/ass1-tagger-dev')
+    acc = utils.calc_accuracy(real_tags,predicted_tags)
     print(acc)
 
-    # Write all predictions to the output file.
-    with open(out_file_name, "w") as out_file:
-        for sent_idx, line in enumerate(all_sent):
-            for i, (word, tag) in enumerate(zip(line, tags[sent_idx])):
-                out_file.write('{}/{}{}'.format(word, tag, ' ' if i + 1 < len(line) else '\n'))
 
+    with open(out_file_name, "w") as out_file:
+        for sent_idx, line in enumerate(sentences):
+            for i, (word, tag) in enumerate(zip(line, predicted_tags[sent_idx])):
+                if i + 1 < len(line):
+                    out_file.write(f'{word}/{tag} ')
+                else:
+                    out_file.write(f'{word}/{tag}\n')
 
 
 

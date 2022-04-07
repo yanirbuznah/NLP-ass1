@@ -5,16 +5,12 @@ from collections import Counter
 THRESHOLD = 2
 # tokens
 UNK = '^UNK'
-START = '*START*'
-END = '*END*'
+START = '^S^'
+END = '^E^'
 
-
-
-# TODO: what to do about short words?
 def get_prefs(wi):
     prefs = {}
     wi_len = len(wi)
-    prefs['pref6'] = wi[:6] if wi_len >= 6 else ""
     prefs['pref5'] = wi[:5] if wi_len >= 5 else ""
     prefs['pref4'] = wi[:4] if wi_len >= 4 else ""
     prefs['pref3'] = wi[:3] if wi_len >= 3 else ""
@@ -26,7 +22,6 @@ def get_prefs(wi):
 def get_suffs(wi):
     suffs = {}
     wi_len = len(wi)
-    suffs['suff6'] = wi[-6:] if wi_len >= 6 else ""
     suffs['suff5'] = wi[-5:] if wi_len >= 5 else ""
     suffs['suff4'] = wi[-4:] if wi_len >= 4 else ""
     suffs['suff3'] = wi[-3:] if wi_len >= 3 else ""
@@ -37,19 +32,8 @@ def get_suffs(wi):
 
 def get_rare_features(wi):
     features = {}
-
     features.update(get_prefs(wi))
     features.update(get_suffs(wi))
-    number, upper, hyphen = False,False,False
-    for ch in wi:
-        number = int(number or ch.isdigit())
-        upper = int(upper or ch.isupper())
-        hyphen = int(hyphen or ch == '-')
-    features.update({
-        'number': number,
-        'upper': upper,
-        'hyphen': hyphen
-    })
     return features
 
 
@@ -66,24 +50,13 @@ def extract(sent: list, i, last_two_tags: tuple, rare: bool) -> dict:
     features = {
         'word_i-1': sent[i - 1] if i > 0 else START,
         'word_i-2': sent[i - 2] if i > 1 else START,
-        'word_i+1': sent[i + 1] if len(sent) > i + 1  else END,
+        'word_i+1': sent[i + 1] if len(sent) > i + 1 else END,
         'word_i+2': sent[i + 2] if len(sent) > i + 2 else END,
         'tag_i-1': last_two_tags[0],
         'tag_i-2': last_two_tags[1],
         'form': wi if not rare else UNK
     }
     features.update(get_rare_features(wi))
-
-    # # features for rare words
-    # if rare:
-    #     features.update(get_rare_features(wi))
-    # # features for common words
-    # else:
-    #     features['form'] = wi
-    #
-    # features.update(get_prefs(wi))
-    # features.update(get_suffs(wi))
-
     return features
 
 

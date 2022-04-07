@@ -1,7 +1,10 @@
 import sys
 import time
+
 import numpy as np
+
 import utils
+
 
 def vitterbiAlgorithm(lines, words_possible_tags):
     final_line_tags = []
@@ -9,27 +12,31 @@ def vitterbiAlgorithm(lines, words_possible_tags):
         v = [{(utils.START, utils.START): 1}]
         bp = []
 
-        for i, word in enumerate(line):
-            if word not in words_possible_tags:
-                word = word.lower() if (word.lower() in words_possible_tags) else utils.word_sign(word)
-            max_p = {}
-            argmax_tag = {}
-            for t2, t1 in v[i]:
-                for t in sorted(words_possible_tags[word]):
-                    e = utils.smooth((word, t))
-                    q = utils.interpulation(t, t1, t2)
-
-                    temp = v[i][(t2, t1)] + np.log2(q) + np.log2(e)
-                    if (t1, t) not in max_p or temp > max_p[(t1, t)]:
-                        max_p[(t1, t)] = temp
-                        argmax_tag[(t1, t)] = t2
-            v.append(max_p)
-            bp.append(argmax_tag)
+        viterbi_on_single_line(bp, line, v, words_possible_tags)
 
         tags = get_best_tags_path(bp, v)
         final_line_tags.append(tags)
 
     return final_line_tags
+
+
+def viterbi_on_single_line(bp, line, v, words_possible_tags):
+    for i, word in enumerate(line):
+        if word not in words_possible_tags:
+            word = word.lower() if (word.lower() in words_possible_tags) else utils.word_sign(word)
+        max_p = {}
+        argmax_tag = {}
+        for t2, t1 in v[i]:
+            for t in sorted(words_possible_tags[word]):
+                e = utils.smooth((word, t))
+                q = utils.interpulation(t, t1, t2)
+
+                temp = v[i][(t2, t1)] + np.log2(q) + np.log2(e)
+                if (t1, t) not in max_p or temp > max_p[(t1, t)]:
+                    max_p[(t1, t)] = temp
+                    argmax_tag[(t1, t)] = t2
+        v.append(max_p)
+        bp.append(argmax_tag)
 
 
 def get_best_tags_path(bp, v):
@@ -53,7 +60,7 @@ if __name__ == '__main__':
     utils.emissions = utils.parse_mle_file(e_mle_filename)
     utils.tags = utils.get_tags(utils.emissions)
     utils.num_of_words = sum(utils.emissions.values())
-    real_tags = utils.extract_tags_from_file('../ass1-tagger-dev')
+    real_tags = utils.extract_tags_from_file('./ass1data/data/ass1-tagger-dev')
     best = 0
     utils.lambda1 = 0.8
     utils.lambda2 = 0.1
@@ -64,17 +71,3 @@ if __name__ == '__main__':
         best = accuracy
         print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')
         print(f"accuracy:  {str(accuracy)}")
-    # for i in range(1000):
-    #     x = np.random.random()
-    #     y = np.random.random()
-    #     z = np.random.random()
-    #     s = x+y+z
-    #     utils.lambda1 = x/s
-    #     utils.lambda2 = y/s
-    #     predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
-    #
-    #     accuracy = utils.calc_accuracy(predicted_tags, real_tags)
-    #     if accuracy > best:
-    #         best = accuracy
-    #         print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')
-    #         print(f"accuracy:  {str(accuracy)}")
