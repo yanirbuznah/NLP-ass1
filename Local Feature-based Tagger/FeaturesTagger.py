@@ -49,7 +49,7 @@ def main():
         for j in indexes_for_removes:
             sentences_indexes.remove(j)
 
-    real_tags = utils.extract_tags_from_file('../ass1data/data/ass1-tagger-dev')
+    real_tags = utils.extract_tags_from_file('./ass1data/data/ass1-tagger-dev')
     acc = utils.calc_accuracy(real_tags,predicted_tags)
     print(acc)
 
