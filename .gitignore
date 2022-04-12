@@ -9,3 +9,9 @@ __pycache__/utils.cpython-39.pyc
 /Local Feature-based Tagger/model_file_best
 /Local Feature-based Tagger/f1
 /Local Feature-based Tagger/f
+*.txt
+*.pred
+HMM_Tagger/__pycache__/HMMTag.cpython-39.pyc
+Local_Feature-based_Tagger/__pycache__/ExtractFeatures.cpython-39.pyc
+Local_Feature-based_Tagger/__pycache__/utils.cpython-39.pyc
+NERTagger/__pycache__/utils.cpython-39.pyc

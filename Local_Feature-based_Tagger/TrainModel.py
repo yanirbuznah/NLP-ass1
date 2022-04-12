@@ -1,6 +1,5 @@
 import pickle
 import sys
-
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LogisticRegression
 

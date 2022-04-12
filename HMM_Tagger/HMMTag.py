@@ -1,8 +1,19 @@
 import sys
 import time
-
 import numpy as np
-
+import os
+import sys
+# getting the name of the directory
+# where the this file is present.
+current = os.path.dirname(os.path.realpath(__file__))
+  
+# Getting the parent directory name
+# where the current directory is present.
+parent = os.path.dirname(current)
+  
+# adding the parent directory to 
+# the sys.path.
+sys.path.append(parent)
 import utils
 
 
@@ -62,15 +73,8 @@ if __name__ == '__main__':
     utils.emissions = utils.parse_mle_file(e_mle_filename)
     utils.tags = utils.get_tags(utils.emissions)
     utils.num_of_words = sum(utils.emissions.values())
-    real_tags = utils.extract_tags_from_file('./ass1data/data/ass1-tagger-dev')
     best = 0
     utils.lambda1 = 0.8
     utils.lambda2 = 0.1
     predicted_tags = vitterbiAlgorithm(lines, utils.get_dict(utils.emissions))
-
-    accuracy = utils.calc_accuracy(predicted_tags, real_tags)
     utils.write_output_file(predicted_tags,lines,output_file_name)
-    if accuracy > best:
-        best = accuracy
-        print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')
-        print(f"accuracy:  {str(accuracy)}")

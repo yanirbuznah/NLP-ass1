@@ -3,19 +3,18 @@ from collections import Counter
 
 import numpy as np
 
-import utils
 from utils import *
 
 def calc_mle(input_file_name):
     file = open(input_file_name, 'r')
     lines = file.readlines()
     file.close()
-    words_tags = []
+    # words_tags = []
     for line in lines:
         # remove trailing '\n' and split by ' '
-        tuples = [tuple(pair.rsplit('/', 1)) for pair in line.strip().split(' ')]
-        words_tags += tuples
         split_line = line.strip().split(' ')
+        tuples = [tuple(pair.rsplit('/', 1)) for pair in split_line]
+        # words_tags += tuples
         calc_emle(split_line)
         calc_qmle(split_line)
     # rare_emissions = count_patterns(words_tags)
@@ -32,8 +31,8 @@ def calc_mle(input_file_name):
         emissions.pop(key)
 
 def count_patterns(words_tags):
-        unknown_token = utils.UNK
-        num_occurrences = utils.THRESHOLD
+        unknown_token = UNK
+        num_occurrences = THRESHOLD
         words_tags_counter = emissions
         # Count the number of occurrences of each word in the training set.
         counter = Counter([pair[0] for pair in words_tags])
@@ -53,13 +52,13 @@ def count_patterns(words_tags):
             if word in rare:  # If the word is rare.
 
                 # Find its fit word-signature pattern and update the word-signature count for its associated tag.
-                signature = utils.word_sign(word) if utils.word_sign(word) is not None else unknown_token
+                signature = word_sign(word) if word_sign(word) is not None else unknown_token
                 pattern_e_counts[(signature ,tag)] += words_tags_counter[(word,tag)]
 
             else:  # Otherwise
 
                 # Find the fit word-signature pattern, if exists.
-                signature = utils.word_sign(word)
+                signature = word_sign(word)
 
                 # If there is a word-signature pattern that fits.
                 if signature is not None:

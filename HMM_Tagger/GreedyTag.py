@@ -1,6 +1,4 @@
 import sys
-# from MLETrain import wordSign
-
 import numpy as np
 import utils
 
@@ -49,13 +47,8 @@ if __name__ == '__main__':
     utils.emissions = utils.parse_mle_file(e_mle_filename)
     utils.tags = utils.get_tags(utils.emissions)
     utils.num_of_words = sum(utils.emissions.values())
-    real_tags = utils.extract_tags_from_file('./ass1data/data/ass1-tagger-dev')
     best = 0
     utils.lambda1 = 0.5
     utils.lambda2 = 0.1
     predicted_tags = greedyAlgorithm(seperated_lines, words_possible_tags=utils.get_dict(utils.emissions))
-    accuracy = utils.calc_accuracy(predicted_tags, real_tags)
-    if accuracy > best:
-        best = accuracy
-        print(f'lambda1: {utils.lambda1},lambda2: {utils.lambda2},lambda3: {1.0 - utils.lambda1 - utils.lambda2}')
-        print(f"accuracy:  {str(accuracy)}")
+    utils.write_output_file(predicted_tags, seperated_lines, output_file_name)
