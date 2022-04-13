@@ -1,6 +1,10 @@
 import sys
 import utils
 
+
+def flatten(t):
+    return [item for sublist in t for item in sublist]
+
 def eval(pred_file, gold_file):
     real_tags = utils.extract_tags_from_file(gold_file)
     predicted_tags = utils.extract_tags_from_file(pred_file)

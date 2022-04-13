@@ -19,16 +19,16 @@ def greedyAlgorithm(lines, words_possible_tags):
     """
     lines_tags = []
     for line in lines:
-        tag_i, t_minus_1, t_minus_2 = "*START*", "*START*", "*START*"
+        tag_i, t_minus_1, t_minus_2 = utils.START, utils.START,utils.START
         line_tags = []
         for i, word in enumerate(line):
             if word not in words_possible_tags:
                 word = word.lower() if (word.lower() in words_possible_tags) else utils.word_sign(word)
             p_ti_wi = float('-inf')
-            for t in set(words_possible_tags[word]):
+            for t in sorted(words_possible_tags[word]):
                 q = utils.interpulation(t, t_minus_1, t_minus_2)
                 e = utils.getE(word, t)
-                prob = 0 if e==0 or q == 0 else np.log2(q) + np.log2(e)
+                prob = 0 if e == 0 or q == 0 else np.log2(q) + np.log2(e)
                 if prob > p_ti_wi:
                     p_ti_wi = prob
                     tag_i = t

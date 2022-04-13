@@ -3,7 +3,7 @@ import sys
 from sklearn.metrics import f1_score
 gold_file=sys.argv[1]
 pred_file=sys.argv[2]
-
+# gold_file, pred_file = '../ner/dev', '../ner.hmm.pred'
 def read_data(fname):
     for line in open(fname):
         line = line.strip().split()

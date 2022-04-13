@@ -2,6 +2,8 @@ import sys
 from collections import Counter
 
 # rarity threshold
+import utils
+
 THRESHOLD = 2
 # tokens
 UNK = '^UNK'
@@ -30,12 +32,6 @@ def get_suffs(wi):
     return suffs
 
 
-def get_rare_features(wi):
-    features = {}
-    features.update(get_prefs(wi))
-    features.update(get_suffs(wi))
-    return features
-
 
 def extract(sent: list, i, last_two_tags: tuple, rare: bool) -> dict:
     """
@@ -54,9 +50,12 @@ def extract(sent: list, i, last_two_tags: tuple, rare: bool) -> dict:
         'word_i+2': sent[i + 2] if len(sent) > i + 2 else END,
         'tag_i-1': last_two_tags[0],
         'tag_i-2': last_two_tags[1],
-        'form': wi if not rare else UNK
+        'form': wi if not rare else utils.word_sign(wi),
+        'form_title': wi[:1].upper() + wi[1:].lower(),
+        'form_lower': wi.lower(),
     }
-    features.update(get_rare_features(wi))
+    features.update(get_prefs(wi))
+    features.update(get_suffs(wi))
     return features
 
 
